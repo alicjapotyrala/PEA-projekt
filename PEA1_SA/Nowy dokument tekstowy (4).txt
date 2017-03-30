@@ -1,0 +1,62 @@
+	int * TabuSearch::najlepszeSasiedztwo(int *trasa, double **macierz, int miasta, float asp){
+	double obecna_droga, najlepsza_droga;
+	float improvment;
+	int *najlepsza = new int[miasta];
+
+	przypisz(najlepsza, trasa, miasta);
+
+	for (int i = 0; i < miasta; i++)
+	{
+		for (int j = 0; j < miasta; j++){
+			swap1(trasa, i, j);
+			zmniejszKadencje();
+
+			obecna_droga = droga(macierz, miasta, trasa);
+			najlepsza_droga = droga(macierz, miasta, najlepsza);
+
+			//jezeli przejscie miedzy miastami i,j znajduje sie na liscie tabu
+			if (czyJestNaLiscie(i, j) != false) {
+
+				if (obecna_droga < najlepsza_droga) {
+					//kryterium aspiracji- nowa najlepsza trasa przynajmniej 50% lepsza od obecnie branej jako najlepsza
+					improvment = (najlepsza_droga - obecna_droga) / najlepsza_droga;
+
+					if (improvment > asp) {
+						resetTabu();
+
+						delete[] najlepsza;
+						najlepsza = new int[miasta];
+
+						przypisz(najlepsza, trasa, miasta);
+							
+						dodajDoTabu(i, j, miasta);
+						//wielkosc listy-3*N
+						if (tabu.size() > 3*miasta){
+							tabu.pop_back();
+						}
+						
+					}
+				}
+				swap1(trasa, i, j);
+				break;
+			}
+			//jezeli przejscie miedzy miastami i,j nie znajduje sie na liscie tabu
+			else if (obecna_droga < najlepsza_droga) {
+
+				delete[] najlepsza;
+				najlepsza = new int[miasta];
+
+				przypisz(najlepsza, trasa, miasta);
+				dodajDoTabu(i, j, miasta);
+				//wielkosc listy-3*N
+				if (tabu.size() > 3*miasta){
+					tabu.pop_back();
+				}
+			}
+			swap1(trasa, i, j);
+		}
+	}
+	return najlepsza;
+	delete[] najlepsza;
+
+}

@@ -1,0 +1,119 @@
+int * TabuSearch::najlepszeSasiedztwo(int *trasa, double **macierz, int miasta, TabuList *tlist, float asp){
+	double obecna_droga, najlepsza_droga;
+	float improvment;
+	int *najlepsza = new int[miasta];
+
+	for (int i = 0; i < miasta; i++){
+		najlepsza[i] = trasa[i];
+	}
+
+	for (int i = 0; i < miasta; i++)
+	{
+		for (int j = 0; j < miasta; j++)
+		{
+			tlist->decrement_tabu(miasta);
+			
+			obecna_droga = droga(macierz, miasta, trasa);
+			najlepsza_droga = droga(macierz, miasta, najlepsza);
+
+			if (tlist->nrKadencji(i, j) != 0) {
+					if (obecna_droga <= najlepsza_droga) {
+						improvment = (najlepsza_droga - obecna_droga) / najlepsza_droga;
+						if (improvment > asp) {
+						tlist->reset(miasta);
+						delete[] najlepsza;
+						najlepsza = new int[miasta];
+						for (int i = 0; i < miasta; i++){
+							najlepsza[i] = trasa[i];
+
+							tlist->ruch_tabu(i, j, miasta);
+						}
+					}
+				}
+					swap1(trasa, i, j);
+				break;
+			}
+			else if (obecna_droga <= najlepsza_droga) {
+				delete[] najlepsza;
+				najlepsza = new int[miasta];
+				przypisz(najlepsza, trasa, miasta);
+				tlist->ruch_tabu(i, j, miasta);
+			}
+			swap1(trasa, i, j);
+		}
+	}
+	return najlepsza;
+	delete[] najlepsza;
+
+}
+
+double TabuSearch::ts(int max_cadence, double ** macierz1, int miasta, int MAX_TRIES, int & rozwiazanie)
+{
+	start();
+	TabuList *tlist = new TabuList(miasta, max_cadence);
+	int *best_route = new int[miasta];
+	int *permutacja1 = new int[miasta];
+	int bylo = 0;
+	permutacja(permutacja1, miasta);
+
+	for (int i = 0; i < miasta; i++){
+		best_route[i] = permutacja1[i];
+	}
+
+	int *current_route = new int[miasta];
+	for (int i = 0; i < miasta; i++){
+		current_route[i] = best_route[i];
+	}
+		for (int i = 0; i < MAX_TRIES; i++){
+			current_route = najlepszeSasiedztwo(current_route, macierz1, miasta, tlist, 0.5);
+			if (droga(macierz1, miasta, current_route) <= droga(macierz1, miasta, best_route)) {
+				delete[] best_route;
+				best_route = new int[miasta];
+				for (int j = 0; j < miasta; j++){
+					best_route[j] = current_route[j];
+				}
+			}
+			else
+				bylo++;
+
+			if (bylo == 2 * miasta){
+				delete[] current_route;
+				current_route = new int[miasta];
+				current_route = dywersyfikacja(miasta, macierz1);
+				
+
+			}
+
+			if (bylo == 10 * miasta){
+				delete[] current_route;
+				current_route = new int[miasta];
+				int*permutacja2 = new int[miasta];
+				permutacja(permutacja2, miasta);
+				for (int i = 0; i < miasta; i++){
+					current_route[i] = permutacja2[i];
+				}
+					bylo = 0;
+					
+				}
+
+					//if (bylo == 20 * miasta){
+					//	rozwiazanie = droga(macierz1, miasta, best_route);
+
+					//	bylo = 0;
+					//	break;
+
+					//	}
+			}
+		
+
+	
+
+	rozwiazanie = droga(macierz1, miasta, best_route);
+
+
+
+	return stop();
+	delete[]best_route;
+	delete[]permutacja1;
+	delete[]current_route;
+}
