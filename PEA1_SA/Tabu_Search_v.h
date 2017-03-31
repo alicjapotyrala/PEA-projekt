@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Matrix.h"
-#include "TabuList.h"
+
 
 struct tList{
 	int city1;
